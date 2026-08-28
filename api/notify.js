@@ -40,9 +40,24 @@ export default async function handler(req, res) {
 
   const failed = results.filter((r) => r.status === 'rejected').length;
 
+  // DIAGNÓSTICO TEMPORAL: detalle de cada fallo (índice, código y mensaje).
+  // Quita este bloque de "detalles" cuando ya no lo necesites.
+  const detalles = results.map((r, i) => {
+    if (r.status === 'fulfilled') {
+      return { indice: i, ok: true };
+    }
+    return {
+      indice: i,
+      ok: false,
+      statusCode: r.reason && r.reason.statusCode,
+      mensaje: r.reason && (r.reason.body || r.reason.message),
+    };
+  });
+
   return res.status(200).json({
     ok: true,
     enviados: subscriptions.length - failed,
     fallidos: failed,
+    detalles,
   });
 }
